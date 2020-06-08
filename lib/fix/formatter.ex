@@ -1,5 +1,5 @@
 # https://github.com/elixir-lang/elixir/blob/v1.10.3/lib/elixir/lib/code/formatter.ex
-defmodule Code.Formatter do
+defmodule Fix.Formatter do
   @moduledoc false
   import Inspect.Algebra, except: [format: 2, surround: 3, surround: 4]
 
@@ -218,6 +218,13 @@ defmodule Code.Formatter do
         |> Enum.reverse()
         |> gather_comments()
         |> state(opts)
+
+      forms =
+        if opts[:transform] do
+          Macro.prewalk(forms, opts[:transform])
+        else
+          forms
+        end
 
       {doc, _} = block_to_algebra(forms, @min_line, @max_line, state)
       {:ok, doc}
