@@ -7,6 +7,8 @@ defmodule Fix do
   A "fix" is a 1-arity function, or a module exporting `fix/1`, that transforms
   the AST. The function is given to `Macro.prewalk/2`.
 
+  `opts` are passed down to `Code.format_string!/2`.
+
   **Note**: the AST that the fix accepts and returns is not the "regular" Elixir AST,
   but the annotated Elixir formatter AST. Given we rely on Elixir internals,
   this function may not work on future Elixir versions. It has been tested only
@@ -24,11 +26,11 @@ defmodule Fix do
 
   Remember to add a "catch-all" clause at the end!
   """
-  @spec fix(String.t(), [fix()]) :: String.t()
-  def fix(string, fixes) do
+  @spec fix(String.t(), [fix()], keyword()) :: String.t()
+  def fix(string, fixes, opts \\ []) do
     Enum.reduce(fixes, string, fn fix, acc ->
       acc
-      |> format_string!(transform: fix)
+      |> format_string!([transform: fix] ++ opts)
       |> IO.iodata_to_binary()
     end)
   end
