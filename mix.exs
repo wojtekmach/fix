@@ -5,7 +5,7 @@ defmodule Fix.MixProject do
     [
       app: :fix,
       version: "0.1.0",
-      elixir: "~> 1.10"
+      elixir: "~> 1.10.3"
     ]
   end
 end
