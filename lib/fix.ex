@@ -1,5 +1,5 @@
 defmodule Fix do
-  @type fix() :: (Macro.t() -> Macro.t()) | module()
+  @type fix() :: (Macro.t() -> Macro.t())
 
   @doc """
   Transforms code in `string` according to `fixes`.
