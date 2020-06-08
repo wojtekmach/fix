@@ -4,15 +4,15 @@ defmodule Fix do
   @doc """
   Transforms code in `string` according to `fixes`.
 
-  A "fix" is a 1-arity function, or a module exporting `fix/1`, that transforms
-  the AST. The function is given to `Macro.prewalk/2`.
+  A "fix" is a 1-arity function that transforms the AST. The function is
+  given to `Macro.prewalk/2`.
 
   `opts` are passed down to `Code.format_string!/2`.
 
-  **Note**: the AST that the fix accepts and returns is not the "regular" Elixir AST,
-  but the annotated Elixir formatter AST. Given we rely on Elixir internals,
-  this function may not work on future Elixir versions. It has been tested only
-  on Elixir v1.10.3.
+  **Note**: the AST that the fix accepts and returns is not the "regular"
+  Elixir AST, but the annotated Elixir formatter AST. Given we rely on Elixir
+  internals, this function may not work on future Elixir versions. It has been
+  tested only on Elixir v1.10.3.
 
   Here's an example fix that transforms `def foo` into `def bar`:
 
