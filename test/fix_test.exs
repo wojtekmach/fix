@@ -1,18 +1,21 @@
 defmodule FixTest do
-  use ExUnit.Case, async: true
-  doctest Fix
+  use ExUnit.Case
 
   test "renaming function definition" do
     code = """
-    def foo(a, b) do
-      a + b
-    end\
+    defmodule A do
+      def foo(a, b) do
+        a + b
+      end
+    end
     """
 
     fixed = """
-    def bar(a, b) do
-      a + b
-    end\
+    defmodule A do
+      def bar(a, b) do
+        a + b
+      end
+    end
     """
 
     assert Fix.fix(code, [{:rename_function_def, :foo, :bar}]) == fixed
@@ -20,17 +23,28 @@ defmodule FixTest do
 
   test "renaming function call" do
     code = """
-    def foo(a) do
-      Foo.a(a)
-    end\
+    String.upcase("foo")
     """
 
     fixed = """
-    def foo(a) do
-      Foo.b(a)
-    end\
+    String.downcase("foo")
     """
 
-    assert Fix.fix(code, [{:rename_function_call, {Foo, :a}, {Foo, :b}}]) == fixed
+    assert Fix.fix(code, [{:rename_function_call, {String, :upcase}, {String, :downcase}}]) ==
+             fixed
+  end
+
+  test "replace imported calls" do
+    code = """
+    import String
+    upcase("foo")
+    """
+
+    fixed = """
+    import String
+    String.upcase("foo")
+    """
+
+    assert Fix.fix(code, [{:replace_imported_calls, String}]) == fixed
   end
 end

@@ -42,11 +42,43 @@ defmodule Fix do
   """
   @spec fix(String.t(), [fix()], keyword()) :: String.t()
   def fix(string, fixes, opts \\ []) do
+    {:ok, _} = Fix.Server.start_link()
+    Code.compiler_options(parser_options: [columns: true], tracers: [Fix.Tracer])
+    Code.compile_string(string)
+
     Enum.reduce(fixes, string, fn fix, acc ->
       acc
       |> format_string!([transform: fix(fix)] ++ opts)
       |> IO.iodata_to_binary()
-    end)
+    end) <> "\n"
+  end
+
+  defmodule Tracer do
+    def trace({:imported_function, _meta, _module, _name, _arity} = event, _env) do
+      Fix.Server.record(event)
+    end
+
+    def trace(_other, _env) do
+      :ok
+    end
+  end
+
+  defmodule Server do
+    use Agent
+
+    @name __MODULE__
+
+    def start_link() do
+      Agent.start_link(fn -> [] end, name: @name)
+    end
+
+    def record(event) do
+      Agent.update(@name, &[event | &1])
+    end
+
+    def events() do
+      Agent.get(@name, & &1)
+    end
   end
 
   defp fix(fun) when is_function(fun, 1) do
@@ -70,6 +102,29 @@ defmodule Fix do
     fn
       {{:., meta1, [{:__aliases__, meta2, ^from_alias}, ^from_fun]}, meta3, args} ->
         {{:., meta1, [{:__aliases__, meta2, to_alias}, to_fun]}, meta3, args}
+
+      other ->
+        other
+    end
+  end
+
+  defp fix({:replace_imported_calls, module}) do
+    events = Fix.Server.events()
+
+    calls =
+      for {:imported_function, meta, ^module, function, arity} <- events do
+        {function, arity, meta[:line], meta[:column]}
+      end
+
+    alias = {:__aliases__, [], module |> Module.split() |> Enum.map(&String.to_atom/1)}
+
+    fn
+      {name, meta, args} = ast ->
+        if {name, length(args), meta[:line], meta[:column]} in calls do
+          {{:., [], [alias, name]}, [], args}
+        else
+          ast
+        end
 
       other ->
         other

@@ -208,7 +208,8 @@ defmodule Fix.Formatter do
 
     parser_options = [
       literal_encoder: &{:ok, {:__block__, &2, [&1]}},
-      token_metadata: true
+      token_metadata: true,
+      columns: true
     ]
 
     with {:ok, tokens} <- :elixir.string_to_tokens(charlist, line, file, tokenizer_options),
