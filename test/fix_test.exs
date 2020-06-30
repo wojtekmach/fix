@@ -1,7 +1,8 @@
 defmodule FixTest do
   use ExUnit.Case, async: true
+  doctest Fix
 
-  test "fix/2" do
+  test "renaming function definition" do
     code = """
     def foo(a, b) do
       a + b
@@ -14,14 +15,22 @@ defmodule FixTest do
     end\
     """
 
-    foo2bar = fn
-      {:def, meta1, [{:foo, meta2, args}, expr]} ->
-        {:def, meta1, [{:bar, meta2, args}, expr]}
+    assert Fix.fix(code, [{:rename_function_def, :foo, :bar}]) == fixed
+  end
 
-      other ->
-        other
-    end
+  test "renaming function call" do
+    code = """
+    def foo(a) do
+      Foo.a(a)
+    end\
+    """
 
-    assert Fix.fix(code, [foo2bar]) == fixed
+    fixed = """
+    def foo(a) do
+      Foo.b(a)
+    end\
+    """
+
+    assert Fix.fix(code, [{:rename_function_call, {Foo, :a}, {Foo, :b}}]) == fixed
   end
 end
