@@ -1,4 +1,10 @@
 # https://github.com/elixir-lang/elixir/blob/v1.10.3/lib/elixir/lib/code/formatter.ex
+#
+# Changes:
+#
+#   * add :transform option
+#
+#   * set `columns: true` in :parser_options
 defmodule Fix.Formatter do
   @moduledoc false
   import Inspect.Algebra, except: [format: 2, surround: 3, surround: 4]
