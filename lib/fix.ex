@@ -131,6 +131,26 @@ defmodule Fix do
     end
   end
 
+  defp fix({:add_dep, {:hex, name, requirement}}) do
+    fn
+      {:defp, meta, [{:deps, _, _} = fun, body]} ->
+        [{{_, _, [:do]} = do_ast, block_ast}] = body
+        {:__block__, meta1, [deps]} = block_ast
+
+        deps =
+          deps ++
+            [
+              {:__block__, [],
+               [{{:__block__, [], [name]}, {:__block__, [delimiter: "\""], [requirement]}}]}
+            ]
+
+        {:defp, meta, [fun, [{do_ast, {:__block__, meta1, [deps]}}]]}
+
+      other ->
+        other
+    end
+  end
+
   # Copied from https://github.com/elixir-lang/elixir/blob/v1.10.3/lib/elixir/lib/code.ex#L652
   defp format_string!(string, opts) when is_binary(string) and is_list(opts) do
     line_length = Keyword.get(opts, :line_length, 98)

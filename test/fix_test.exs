@@ -47,4 +47,40 @@ defmodule FixTest do
 
     assert Fix.fix(code, [{:replace_imported_calls, String}]) == fixed
   end
+
+  test "add_dep" do
+    code = """
+    defmodule MyApp.MixProject do
+      use Mix.Project
+
+      def project() do
+        [
+          deps: deps()
+        ]
+      end
+
+      defp deps() do
+        [{:a, "~> 1.0"}]
+      end
+    end
+    """
+
+    fixed = """
+    defmodule MyApp.MixProject do
+      use Mix.Project
+
+      def project() do
+        [
+          deps: deps()
+        ]
+      end
+
+      defp deps() do
+        [{:a, "~> 1.0"}, {:b, "~> 2.0"}]
+      end
+    end
+    """
+
+    assert Fix.fix(code, [{:add_dep, {:hex, :b, "~> 2.0"}}]) == fixed
+  end
 end
