@@ -41,10 +41,12 @@ defmodule Fix do
 
   """
   @spec fix(String.t(), [fix()], keyword()) :: String.t()
-  def fix(string, fixes, opts \\ []) do
-    {:ok, _} = Fix.Server.start_link()
-    Code.compiler_options(parser_options: [columns: true], tracers: [Fix.Tracer])
-    Code.compile_string(string)
+  def fix(string, fixes, opts \\ [], fix_opts \\ []) do
+    if Keyword.get(fix_opts, :compile, true) do
+      {:ok, _} = Fix.Server.start_link()
+      Code.compiler_options(parser_options: [columns: true], tracers: [Fix.Tracer])
+      Code.compile_string(string)
+    end
 
     Enum.reduce(fixes, string, fn fix, acc ->
       acc
